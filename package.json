@@ -1,0 +1,89 @@
+{
+  "name": "shadowrun-anarchy",
+  "version": "1.0.0",
+  "description": "Terminal Clandestino de Gerenciamento de Runner (Shadowrun: Anarchy)",
+  "main": "electron/main.js",
+  "scripts": {
+    "bundle": "python build_bundle.py",
+    "test": "node tools/test_system.js",
+    "generate-icons": "python tools/generate_icons.py",
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "python build_bundle.py && electron-builder",
+    "build:dir": "python build_bundle.py && electron-builder --dir",
+    "build:portable": "python build_bundle.py && electron-builder --win portable",
+    "build:nsis": "python build_bundle.py && electron-builder --win nsis"
+  },
+  "keywords": [
+    "shadowrun",
+    "anarchy",
+    "rpg",
+    "character-sheet",
+    "desktop-app",
+    "windows"
+  ],
+  "author": "Pedro Moreira de Souza",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "devDependencies": {
+    "electron": "^33.3.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.shadowrun.anarchy.terminal",
+    "productName": "Terminal Clandestino de Gerenciamento de Runner",
+    "copyright": "Copyright © 2026 Pedro Moreira de Souza",
+    "directories": {
+      "output": "dist",
+      "buildResources": "icons"
+    },
+    "files": [
+      "index.html",
+      "manifest.json",
+      "LICENSE.md",
+      "THIRD-PARTY-NOTICES.md",
+      "css/**/*",
+      "fonts/**/*",
+      "icons/icon.ico",
+      "icons/icon.png",
+      "icons/icon.svg",
+      "js/bundle.js",
+      "electron/**/*"
+    ],
+    "win": {
+      "icon": "icons/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Terminal Clandestino de Gerenciamento de Runner",
+      "deleteAppDataOnUninstall": false,
+      "installerIcon": "icons/icon.ico",
+      "uninstallerIcon": "icons/icon.ico",
+      "installerHeaderIcon": "icons/icon.ico"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
+    },
+    "extraFiles": [
+      "LICENSE.md",
+      "THIRD-PARTY-NOTICES.md"
+    ]
+  }
+}

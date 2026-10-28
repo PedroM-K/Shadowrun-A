@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Fundo escuro do terminal -->
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#0b1a11"/>
+      <stop offset="60%" stop-color="#050a07"/>
+      <stop offset="100%" stop-color="#020302"/>
+    </radialGradient>
+
+    <!-- Gradiente verde neon Matrix -->
+    <linearGradient id="matrixGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#55ff88"/>
+      <stop offset="45%" stop-color="#00ff66"/>
+      <stop offset="100%" stop-color="#00cc52"/>
+    </linearGradient>
+
+    <!-- Núcleo de alta luminosidade -->
+    <linearGradient id="coreLight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#00ff66"/>
+    </linearGradient>
+
+    <!-- Brilho phosphor CRT neon -->
+    <filter id="neonGlow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Base com cantos arredondados para visibilidade em abas claras e escuras -->
+  <rect width="512" height="512" rx="108" fill="url(#bgGrad)" stroke="#00ff66" stroke-width="10" stroke-opacity="0.35"/>
+
+  <!-- Retículo e linhas táticas de fundo -->
+  <circle cx="256" cy="260" r="212" fill="none" stroke="#00ff66" stroke-width="2" stroke-dasharray="10 16" opacity="0.18"/>
+  <path d="M 64 96 L 64 64 L 96 64" fill="none" stroke="#00ff66" stroke-width="4" opacity="0.35"/>
+  <path d="M 448 96 L 448 64 L 416 64" fill="none" stroke="#00ff66" stroke-width="4" opacity="0.35"/>
+  <path d="M 64 416 L 64 448 L 96 448" fill="none" stroke="#00ff66" stroke-width="4" opacity="0.35"/>
+  <path d="M 448 416 L 448 448 L 416 448" fill="none" stroke="#00ff66" stroke-width="4" opacity="0.35"/>
+
+  <!-- Símbolo da Anarquia: Círculo e o A perfurando as bordas -->
+  <g filter="url(#neonGlow)">
+    <!-- Círculo externo -->
+    <circle cx="256" cy="260" r="148" fill="none" stroke="url(#matrixGreen)" stroke-width="42" stroke-linecap="round"/>
+
+    <!-- Perna esquerda do A -->
+    <line x1="256" y1="52" x2="110" y2="452" stroke="url(#matrixGreen)" stroke-width="46" stroke-linecap="round"/>
+
+    <!-- Perna direita do A -->
+    <line x1="256" y1="52" x2="402" y2="452" stroke="url(#matrixGreen)" stroke-width="46" stroke-linecap="round"/>
+
+    <!-- Barra horizontal cortando vigorosamente os dois lados do círculo -->
+    <line x1="52" y1="294" x2="460" y2="266" stroke="url(#matrixGreen)" stroke-width="42" stroke-linecap="round"/>
+
+    <!-- Pontas afiadas cibernéticas (Barbs) nas quebras da anarquia -->
+    <!-- Ponta superior (Ápice) -->
+    <polygon points="256,36 242,72 270,72" fill="url(#coreLight)"/>
+    <!-- Ponta esquerda do travessão -->
+    <polygon points="40,294 66,280 62,308" fill="url(#coreLight)"/>
+    <!-- Ponta direita do travessão -->
+    <polygon points="472,266 446,252 450,280" fill="url(#coreLight)"/>
+    <!-- Ponta do pé esquerdo -->
+    <polygon points="100,466 124,444 98,436" fill="url(#coreLight)"/>
+    <!-- Ponta do pé direito -->
+    <polygon points="412,466 388,444 414,436" fill="url(#coreLight)"/>
+
+    <!-- Traço fino interno de alta luminosidade no centro das linhas -->
+    <line x1="256" y1="64" x2="116" y2="444" stroke="#ffffff" stroke-width="6" opacity="0.8" stroke-linecap="round"/>
+    <line x1="256" y1="64" x2="396" y2="444" stroke="#ffffff" stroke-width="6" opacity="0.8" stroke-linecap="round"/>
+    <line x1="68" y1="293" x2="444" y2="267" stroke="#ffffff" stroke-width="5" opacity="0.8" stroke-linecap="round"/>
+  </g>
+</svg>

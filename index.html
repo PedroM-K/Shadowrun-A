@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#08090b">
+  <meta name="description"
+    content="Terminal Clandestino de Gerenciamento de Runner — Gerenciador de fichas para Shadowrun: Anarchy">
+  <title>Terminal Clandestino de Gerenciamento de Runner — Shadowrun: Anarchy</title>
+
+  <!-- Manifest e ícones -->
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg?v=2">
+  <link rel="apple-touch-icon" href="./icons/icon.svg?v=2">
+
+  <!-- Fontes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Folhas de estilo -->
+  <link rel="stylesheet" href="./css/theme.css">
+  <link rel="stylesheet" href="./css/animations.css">
+  <link rel="stylesheet" href="./css/layout.css">
+  <link rel="stylesheet" href="./css/components.css">
+</head>
+
+<body>
+  <!-- Efeito Matrix de fundo -->
+  <canvas id="matrix-rain-canvas" aria-hidden="true"></canvas>
+
+  <!-- Efeito CRT na tela -->
+  <div class="crt-overlay" aria-hidden="true"></div>
+
+  <div class="terminal-shell">
+
+    <!-- Cabeçalho -->
+    <header class="terminal-header">
+      <div class="header-left">
+        <button id="btn-mobile-nav" class="btn-term btn-term-sm mobile-nav-toggle" aria-label="Abrir Menu">
+          ☰
+        </button>
+        <span class="sys-logo-tag">SYS // SRA-2080</span>
+        <div class="sys-title-group">
+          <h1>TERMINAL CLANDESTINO <span style="color: var(--term-green);">// GERENCIAMENTO DE RUNNER</span></h1>
+          <div class="sub">SHADOWRUN: ANARCHY — GERENCIADOR DE FICHAS</div>
+        </div>
+      </div>
+
+      <!-- Indicadores centrais -->
+      <div class="header-center">
+        <div class="hud-stat-pill">
+          <span>USER:</span>
+          <strong id="header-user-display" style="color: var(--term-green);">---</strong>
+        </div>
+        <div class="hud-stat-pill">
+          <span>NODE:</span>
+          <span class="sys-tag" style="color: var(--term-cyan);">LOCAL_SECURE</span>
+        </div>
+        <div class="hud-stat-pill">
+          <span>STATUS:</span>
+          <span class="led-indicator led-green"></span>
+          <span style="color: var(--text-bright);">ONLINE</span>
+        </div>
+      </div>
+
+      <!-- Ações rápidas -->
+      <div class="header-right">
+        <button id="btn-header-theme" class="btn-term" title="Alterar Cor do Tema do Terminal">
+          <span class="theme-swatch-dot" id="header-theme-dot"></span>TEMA
+        </button>
+        <button id="btn-header-sheets" class="btn-term btn-term-primary" title="Gerenciar Múltiplas Fichas de Personagem">
+          FICHAS (<span id="header-sheets-count">1</span>)
+        </button>
+        <button id="btn-header-save" class="btn-term" title="Salvar Ficha Atual Manualmente">
+          SALVAR
+        </button>
+        <button id="btn-header-dice" class="btn-term" title="Abrir Matrix Dice Roller">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -1px;" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8" cy="8" r="1.3" fill="currentColor"/>
+            <circle cx="16" cy="8" r="1.3" fill="currentColor"/>
+            <circle cx="12" cy="12" r="1.3" fill="currentColor"/>
+            <circle cx="8" cy="16" r="1.3" fill="currentColor"/>
+            <circle cx="16" cy="16" r="1.3" fill="currentColor"/>
+          </svg>D6
+        </button>
+        <button id="btn-header-export" class="btn-term btn-header-extra" title="Exportar JSON da Ficha">
+          EXPORTAR
+        </button>
+        <button id="btn-header-import" class="btn-term btn-header-extra" title="Importar JSON da Ficha">
+          IMPORTAR
+        </button>
+        <input type="file" id="file-import-input" accept=".json,application/json" style="display: none;" />
+      </div>
+    </header>
+
+    <!-- Fundo escuro do menu mobile -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+    <!-- Área principal: barra lateral e conteúdo -->
+    <div class="terminal-workspace">
+
+      <!-- Menu lateral -->
+      <aside class="terminal-sidebar" id="terminal-sidebar">
+        <!-- Botão fechar no mobile -->
+        <div class="sidebar-mobile-header">
+          <span class="sidebar-mobile-title">// NAVEGAÇÃO</span>
+          <button type="button" id="btn-close-sidebar" class="btn-term btn-term-sm" title="Fechar Menu">✕</button>
+        </div>
+
+        <!-- Resumo do personagem na barra lateral -->
+        <div class="sidebar-runner-card bracket-box">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+            <div class="tag" style="margin: 0;">// ACTIVE RUNNER</div>
+            <button id="btn-sidebar-sheets" class="btn-term btn-term-sm" title="Gerenciar Fichas" style="padding: 0.15rem 0.45rem; font-size: 0.65rem; color: var(--term-green); border-color: var(--term-green-border);">
+              FICHAS (<span id="sidebar-sheets-count">1</span>) ▾
+            </button>
+          </div>
+          <div id="sidebar-alias-display" class="alias">---</div>
+          <div class="sub-meta">
+            <span id="sidebar-meta-display">---</span>
+            <span id="sidebar-arch-display" style="color: var(--term-green);">---</span>
+          </div>
+        </div>
+
+        <!-- Links das abas -->
+        <nav class="sidebar-nav-list" aria-label="Navegação do Terminal">
+          <button class="nav-link-btn active" data-tab="overview">
+            <span class="nav-idx">01</span> // PERFIL & ATRIBUTOS
+          </button>
+          <button class="nav-link-btn" data-tab="skills">
+            <span class="nav-idx">02</span> // PERÍCIAS DE AÇÃO
+          </button>
+          <button class="nav-link-btn" data-tab="gear">
+            <span class="nav-idx">03</span> // ARSENAL, AMPS & ITENS
+          </button>
+          <button class="nav-link-btn" data-tab="notes">
+            <span class="nav-idx">04</span> // CONTATOS & DOSSIÊ
+          </button>
+        </nav>
+      </aside>
+
+      <!-- Conteúdo das abas -->
+      <main class="terminal-main-deck">
+
+        <!-- Abas horizontais no mobile -->
+        <nav class="mobile-tabs-bar" aria-label="Navegação Rápida de Abas">
+          <button type="button" class="nav-link-btn active" data-tab="overview">
+            <span class="nav-idx">01</span> PERFIL
+          </button>
+          <button type="button" class="nav-link-btn" data-tab="skills">
+            <span class="nav-idx">02</span> PERÍCIAS
+          </button>
+          <button type="button" class="nav-link-btn" data-tab="gear">
+            <span class="nav-idx">03</span> ARSENAL
+          </button>
+          <button type="button" class="nav-link-btn" data-tab="notes">
+            <span class="nav-idx">04</span> DOSSIÊ
+          </button>
+        </nav>
+
+        <!-- Aba 1: Perfil, Atributos e Monitores de Condição -->
+        <section id="tab-overview" class="tab-pane active">
+          <!-- Barra rápida (Pontos de Trama, Trunfo, Dano) -->
+          <div class="tactical-hud-strip">
+            <div class="hud-metric">
+              <span class="label">PONTOS DE TRAMA</span>
+              <div class="hud-metric-control">
+                <span id="val-plot-points-hero" class="num" style="color: var(--term-purple); min-width: 22px;">0</span>
+                <span id="val-plot-points" style="display: none;">0</span>
+                <div class="stepper-tactical">
+                  <button type="button" id="btn-plot-dec" title="Gastar Ponto de Trama">−</button>
+                  <button type="button" id="btn-plot-inc" title="Ganhar Ponto de Trama">+</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="hud-metric">
+              <span class="label">RESERVA DE TRUNFO</span>
+              <div class="hud-metric-control">
+                <span id="val-edge-count" class="num" style="color: var(--term-green); min-width: 22px;">1</span>
+                <div class="stepper-tactical">
+                  <button type="button" id="btn-edge-dec" title="Gastar Trunfo">−</button>
+                  <button type="button" id="btn-edge-inc" title="Recuperar Trunfo">+</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="hud-metric">
+              <span class="label">PENALIDADE DE FERIMENTOS</span>
+              <div style="margin-top: 0.15rem;">
+                <span id="wound-penalty-display" class="num" style="color: var(--term-green);">0</span>
+              </div>
+            </div>
+
+            <div class="hud-metric hud-metric-restore" style="align-items: flex-end; justify-content: center;">
+              <button type="button" id="btn-heal-all" class="btn-term btn-term-primary btn-term-sm"
+                title="Restaurar todos os monitores de dano">
+                RESTAURAR TUDO
+              </button>
+            </div>
+          </div>
+
+          <!-- Coluna da esquerda (Perfil) e direita (Monitores) -->
+          <div class="deck-grid-2">
+            <!-- Perfil e lances/disposições -->
+            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+              <!-- Dados do personagem -->
+              <div class="term-panel bracket-box">
+                <div class="term-panel-header" style="padding: 0.4rem 0.85rem;">
+                  <div class="term-panel-title">
+                    <span class="prefix">01.1 //</span> DOSSIÊ DO RUNNER
+                  </div>
+                  <span class="sys-tag" style="color: var(--term-green);">IDENT_RECORD</span>
+                </div>
+                <div class="term-panel-body" style="padding: 0.65rem 0.85rem;">
+                  <!-- Nome de rua -->
+                  <div class="field-block" style="margin-bottom: 0.45rem;">
+                    <div class="field-label">
+                      <span>NOM DE GUERRE</span>
+                      <span class="code">ALIAS_SEC</span>
+                    </div>
+                    <input type="text" id="char-alias" class="field-input identity-field" data-field="alias"
+                      style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; color: var(--term-green); letter-spacing: 1px;"
+                      placeholder="Ex: Ghostwire" />
+                  </div>
+
+                  <div class="deck-grid-2" style="gap: 0.55rem; margin-bottom: 0.45rem;">
+                    <div class="field-block" style="margin-bottom: 0;">
+                      <div class="field-label">NOME LEGAL / REGISTRADO</div>
+                      <input type="text" id="char-name" class="field-input identity-field" data-field="name"
+                        placeholder="Ex: Jax Valentine" />
+                    </div>
+                    <div class="field-block" style="margin-bottom: 0;">
+                      <div class="field-label">METATIPO</div>
+                      <select id="char-metatype" class="field-input identity-field" data-field="metatype">
+                        <option value="Human">Humano</option>
+                        <option value="Elf">Elfo</option>
+                        <option value="Dwarf">Anão</option>
+                        <option value="Ork">Ork</option>
+                        <option value="Troll">Troll</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="deck-grid-2" style="gap: 0.55rem; margin-bottom: 0.45rem;">
+                    <div class="field-block" style="margin-bottom: 0;">
+                      <div class="field-label">ARQUÉTIPO / FUNÇÃO</div>
+                      <input type="text" id="char-archetype" class="field-input identity-field" data-field="archetype"
+                        placeholder="Ex: Samurai Urbano, Decker, Xamã..." />
+                    </div>
+                    <div class="field-block" style="margin-bottom: 0;">
+                      <div class="field-label">DESPERTO / EMERGIDO</div>
+                      <select id="char-awakenedType" class="field-input identity-field" data-field="awakenedType">
+                        <option value="">—</option>
+                        <option value="awakened">Desperto</option>
+                        <option value="emerged">Emergido</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="dossier-stats-quad">
+                    <div class="field-block" style="margin-bottom: 0;">
+                      <div class="field-label">GÊNERO</div>
+                      <input type="text" id="char-gender" class="field-input identity-field" data-field="gender" />
+                    </div>
+                    <div class="field-block" style="margin-bottom: 0;">
+                      <div class="field-label">IDADE</div>
+                      <input type="text" id="char-age" class="field-input identity-field" data-field="age" />
+                    </div>
+                    <div class="field-block" style="margin-bottom: 0;">
+                      <div class="field-label">ALTURA</div>
+                      <input type="text" id="char-height" class="field-input identity-field" data-field="height" />
+                    </div>
+                    <div class="field-block" style="margin-bottom: 0;">
+                      <div class="field-label">PESO</div>
+                      <input type="text" id="char-weight" class="field-input identity-field" data-field="weight" />
+                    </div>
+                  </div>
+
+                  <!-- Nuyen e Karma -->
+                  <div
+                    style="background: var(--bg-elevated); border: 1px solid var(--border-panel); padding: 0.45rem 0.65rem; border-radius: var(--radius-xs); margin-bottom: 0.45rem;">
+                    <div class="deck-grid-2" style="gap: 0.65rem; align-items: start;">
+                      <div class="field-block" style="margin-bottom: 0;">
+                        <!-- Abas de Karma (Total e Disponível) -->
+                        <div class="karma-tab-header">
+                          <div class="karma-tabs-nav" role="tablist">
+                            <button type="button" id="tab-btn-karma-total" class="btn-karma-tab active" data-target="total">
+                              <span>KARMA TOTAL</span>
+                              <span id="badge-karma-total" class="karma-tab-badge">0</span>
+                            </button>
+                            <button type="button" id="tab-btn-karma-avail" class="btn-karma-tab" data-target="available">
+                              <span>DISPONÍVEL</span>
+                              <span id="badge-karma-avail" class="karma-tab-badge">0</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Conteúdo das abas de karma -->
+                        <div id="pane-karma-total" class="karma-pane active">
+                          <input type="number" id="char-totalKarma" class="field-input field-input-mono identity-field"
+                            data-field="totalKarma" min="0" style="font-weight: 700; color: var(--term-purple);"
+                            placeholder="0" title="Karma total acumulado na carreira" />
+                        </div>
+                        <div id="pane-karma-avail" class="karma-pane" style="display: none;">
+                          <input type="number" id="char-karma" class="field-input field-input-mono identity-field"
+                            data-field="karma" min="0" style="font-weight: 700; color: var(--term-green);"
+                            placeholder="0" title="Karma disponível para gastar agora" />
+                        </div>
+                      </div>
+
+                      <div class="field-block" style="margin-bottom: 0;">
+                        <div class="credstick-label">SALDO CREDSTICK (¥)</div>
+                        <input type="number" id="char-nuyen" class="field-input field-input-mono identity-field"
+                          data-field="nuyen" min="0" placeholder="0" style="font-weight: 700; color: var(--term-amber);" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Pontos de criação -->
+                  <div id="creation-audit-strip" class="creation-audit-strip bracket-box" style="padding: 0.45rem 0.75rem; background: var(--bg-elevated); border: 1px solid var(--border-panel); font-family: var(--font-mono); font-size: 0.74rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                    <span style="color: var(--text-muted); font-weight: 700;">PONTOS DE CRIAÇÃO:</span>
+                    <select id="char-gameLevel" class="field-input identity-field audit-level-select" data-field="gameLevel" title="Nível de Jogo / Pontos de Criação">
+                      <option value="ganger">GANGUE (GANGER)</option>
+                      <option value="street_runner" selected>INCURSOR DE RUA (PADRÃO)</option>
+                      <option value="prime_runner">INCURSOR DE PRESTÍGIO (PRIME RUNNER)</option>
+                    </select>
+                    <span id="audit-attr-points" class="sys-tag" style="color: var(--term-green);">ATRIBUTOS: 0 / 16</span>
+                    <span id="audit-skill-points" class="sys-tag" style="color: var(--term-cyan);">PERÍCIAS: 0 / 12</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lances e Disposições -->
+              <div class="term-panel bracket-box">
+                <div class="term-panel-header" style="padding: 0.4rem 0.85rem;">
+                  <div class="term-panel-title">
+                    <span class="prefix">01.2 //</span> LANCES &amp; DISPOSIÇÕES
+                  </div>
+                  <span class="sys-tag" style="color: var(--term-purple);">NARRATIVE_LOG</span>
+                </div>
+                <div class="term-panel-body" style="padding: 0.65rem 0.85rem;">
+                  <div class="cues-disp-grid">
+                    <!-- Seção de Lances -->
+                    <div>
+                      <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                        <div class="field-label" style="margin-bottom: 0;">LANCES</div>
+                        <button type="button" id="btn-add-cue" class="btn-term btn-term-sm" title="Adicionar Lance">+</button>
+                      </div>
+                      <div id="cues-list-container"></div>
+                    </div>
+
+                    <!-- Seção de Disposições -->
+                    <div>
+                      <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                        <div class="field-label" style="margin-bottom: 0;">DISPOSIÇÕES</div>
+                        <button type="button" id="btn-add-disp" class="btn-term btn-term-sm" title="Adicionar Disposição">+</button>
+                      </div>
+                      <div id="dispositions-list-container"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Monitores de condição -->
+            <div class="term-panel bracket-box">
+              <div class="term-panel-header" style="padding: 0.4rem 0.85rem;">
+                <div class="term-panel-title">
+                  <span class="prefix">01.3 //</span> MONITORES DE CONDIÇÃO
+                </div>
+                <span class="sys-tag" style="color: var(--term-red);">VITAL_SIGNS</span>
+              </div>
+              <div class="term-panel-body" style="padding: 0.65rem 0.85rem;">
+                <div class="monitors-container">
+                  <!-- Monitor de Armadura -->
+                  <div class="condition-monitor-card track-armor">
+                    <div class="condition-monitor-header">
+                      <div class="condition-title-group">
+                        <span class="condition-icon-badge">⛉</span>
+                        <div class="condition-title-text">
+                          <span class="name" style="color: var(--term-amber);">MONITOR DE ARMADURA</span>
+                        </div>
+                      </div>
+                      <div class="condition-metrics">
+                        <div class="armor-max-control">
+                          <span class="armor-max-label">MÁX</span>
+                          <span class="stepper-tactical armor-max-stepper"
+                            title="Ajustar o número máximo de caixas de armadura">
+                            <button type="button" class="btn-armor-max-dec"
+                              aria-label="Diminuir máximo de armadura">−</button>
+                            <input id="armor-rating-input" class="armor-max-input" type="number" min="1" max="30" step="1"
+                              value="9" inputmode="numeric" aria-label="Máximo de caixas do Monitor de Armadura" />
+                            <button type="button" class="btn-armor-max-inc"
+                              aria-label="Aumentar máximo de armadura">+</button>
+                          </span>
+                          <span id="val-armor-count" class="sys-tag armor-max-count" style="color: var(--term-amber);">0 / 9</span>
+                        </div>
+                        <span id="armor-status-pill" class="condition-status-pill pill-status-ok">ÍNTEGRA</span>
+                      </div>
+                    </div>
+                    <div id="track-armor-boxes" class="track-triplets-wrapper"></div>
+                    <div class="condition-track-footer">
+                      <span id="armor-track-hint"></span>
+                      <div class="track-quick-actions">
+                        <button type="button" class="btn-track-action btn-track-inc" data-track="armor">+1 Dano</button>
+                        <button type="button" class="btn-track-action btn-track-dec" data-track="armor">-1 Dano</button>
+                        <button type="button" class="btn-track-action btn-track-clear" data-track="armor">Reparar</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Monitor Físico -->
+                  <div class="condition-monitor-card track-phys">
+                    <div class="condition-monitor-header">
+                      <div class="condition-title-group">
+                        <span class="condition-icon-badge">♡</span>
+                        <div class="condition-title-text">
+                          <span class="name" style="color: var(--term-red);">MONITOR FÍSICO</span>
+                        </div>
+                      </div>
+                      <div class="condition-metrics">
+                        <span id="val-phys-count" class="sys-tag" style="color: var(--term-red);">0 / 10</span>
+                        <span id="phys-status-pill" class="condition-status-pill pill-status-ok">ÍNTEGRO</span>
+                      </div>
+                    </div>
+                    <div id="track-physical-boxes" class="track-triplets-wrapper"></div>
+                    <div class="condition-track-footer">
+                      <span id="phys-track-hint"></span>
+                      <div class="track-quick-actions">
+                        <button type="button" class="btn-track-action btn-track-inc" data-track="physical">+1 Dano</button>
+                        <button type="button" class="btn-track-action btn-track-dec" data-track="physical">-1 Dano</button>
+                        <button type="button" class="btn-track-action btn-track-clear" data-track="physical">Curar</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Monitor de Atordoamento -->
+                  <div class="condition-monitor-card track-stun">
+                    <div class="condition-monitor-header">
+                      <div class="condition-title-group">
+                        <span class="condition-icon-badge">︎⚡︎</span>
+                        <div class="condition-title-text">
+                          <span class="name" style="color: var(--term-cyan);">MONITOR DE ATORDOAMENTO</span>
+                        </div>
+                      </div>
+                      <div class="condition-metrics">
+                        <span id="val-stun-count" class="sys-tag" style="color: var(--term-cyan);">0 / 10</span>
+                        <span id="stun-status-pill" class="condition-status-pill pill-status-ok">LÚCIDO</span>
+                      </div>
+                    </div>
+                    <div id="track-stun-boxes" class="track-triplets-wrapper"></div>
+                    <div class="condition-track-footer">
+                      <span id="stun-track-hint"></span>
+                      <div class="track-quick-actions">
+                        <button type="button" class="btn-track-action btn-track-inc" data-track="stun">+1 Dano</button>
+                        <button type="button" class="btn-track-action btn-track-dec" data-track="stun">-1 Dano</button>
+                        <button type="button" class="btn-track-action btn-track-clear" data-track="stun">Recuperar</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Atributos -->
+          <div class="deck-grid-attrs-compact" style="margin-top: 0.85rem;">
+            <!-- Atributos principais -->
+            <div class="term-panel bracket-box" style="display: flex; flex-direction: column;">
+              <div class="term-panel-header" style="padding: 0.4rem 0.85rem;">
+                <div class="term-panel-title">
+                  <span class="prefix">01.4 //</span> ATRIBUTOS PRIMÁRIOS
+                </div>
+                <span class="sys-tag" style="color: var(--term-green);">PHYSICAL_MENTAL</span>
+              </div>
+              <div class="term-panel-body"
+                style="padding: 0.55rem 0.85rem; display: flex; flex-direction: column; justify-content: space-between; flex: 1;">
+                <div id="attributes-primary-container" class="attr-primary-grid"></div>
+              </div>
+            </div>
+
+            <!-- Recursos especiais (Trunfo e Essência) -->
+            <div class="term-panel bracket-box" style="display: flex; flex-direction: column;">
+              <div class="term-panel-header" style="padding: 0.4rem 0.85rem;">
+                <div class="term-panel-title">
+                  <span class="prefix">01.5 //</span> TRUNFO & ESSÊNCIA
+                </div>
+                <span class="sys-tag" style="color: var(--term-cyan);">SPECIAL_RESOURCES</span>
+              </div>
+              <div class="term-panel-body"
+                style="padding: 0.55rem 0.85rem; display: flex; flex-direction: column; justify-content: space-between; flex: 1;">
+                <div id="attributes-special-container" class="attr-special-grid"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Qualidades e defeitos -->
+          <div class="term-panel bracket-box" id="qualities-panel" style="margin-top: 0.85rem;">
+            <div class="term-panel-header" style="padding: 0.4rem 0.85rem;">
+              <div class="term-panel-title">
+                <span class="prefix">01.6 //</span> QUALIDADES DO RUNNER
+              </div>
+              <div class="qualities-header-actions">
+                <span id="qualities-status-badge" class="sys-tag" style="color: var(--term-green);">
+                  2 POSITIVAS // 1 NEGATIVA
+                </span>
+                <button type="button" id="btn-add-quality" class="btn-term btn-term-sm" title="Adicionar Qualidade">+ QUALIDADE</button>
+              </div>
+            </div>
+            <div class="term-panel-body" style="padding: 0.65rem 0.85rem;">
+              <div id="qualities-list-container" class="qualities-grid"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Aba 2: Perícias -->
+        <section id="tab-skills" class="tab-pane">
+          <div class="term-panel bracket-box">
+            <div class="term-panel-header">
+              <div class="term-panel-title">
+                <span class="prefix">02.1 //</span> PERÍCIAS DE AÇÃO
+              </div>
+              <span class="sys-tag" style="color: var(--term-green);">RESERVA</span>
+            </div>
+            <div class="term-panel-body">
+              <div
+                style="font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 1rem;">
+              </div>
+              <div id="skills-list-container"></div>
+            </div>
+          </div>
+
+          <div class="term-panel bracket-box">
+            <div class="term-panel-header">
+              <div class="term-panel-title">
+                <span class="prefix">02.2 //</span> PERÍCIAS DE CONHECIMENTO & IDIOMAS
+              </div>
+              <button id="btn-add-ks" class="btn-term btn-term-sm">+ CONHECIMENTO</button>
+            </div>
+            <div class="term-panel-body">
+              <div
+                style="font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 0.85rem;">
+              </div>
+              <div id="knowledge-skills-container"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Aba 3: Armas, Shadow Amps e Equipamentos -->
+        <section id="tab-gear" class="tab-pane">
+          <!-- Armas -->
+          <div class="term-panel bracket-box" style="margin-bottom: 1.25rem;">
+            <div class="term-panel-header">
+              <div class="term-panel-title">
+                <span class="prefix">03.1 //</span> ARSENAL REGISTRADO NO SISTEMA
+              </div>
+              <button id="btn-add-weapon" class="btn-term btn-term-primary btn-term-sm">+ REGISTRAR ARMA</button>
+            </div>
+            <div class="term-panel-body">
+              <div id="weapons-list-container"></div>
+            </div>
+          </div>
+
+          <!-- Shadow Amps (Amplificações e Ciberware) -->
+          <div class="term-panel bracket-box" style="margin-bottom: 1.25rem;">
+            <div class="term-panel-header">
+              <div class="term-panel-title">
+                <span class="prefix">03.2 //</span> AMPLIFICAÇÕES
+              </div>
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">
+                  ESSÊNCIA: <strong id="amps-essence-display" style="color: var(--term-cyan);">6.00 / 6.00</strong>
+                </div>
+                <button id="btn-add-amp" class="btn-term btn-term-primary btn-term-sm">+ NOVA AMP</button>
+              </div>
+            </div>
+            <div class="term-panel-body">
+              <!-- Barra visual de Essência -->
+              <div
+                style="background: var(--bg-elevated); border: 1px solid var(--border-panel); padding: 0.85rem; border-radius: var(--radius-xs); margin-bottom: 1.25rem;">
+                <div
+                  style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 0.35rem;">
+                  <span>INTEGRIDADE BIOLÓGICA</span>
+                  <span id="amps-essence-percent" style="color: var(--term-cyan);">100% INTATOS</span>
+                </div>
+                <div class="segmented-meter" id="essence-bar-segments"></div>
+              </div>
+
+              <div id="shadow-amps-container"></div>
+            </div>
+          </div>
+
+          <!-- Equipamentos -->
+          <div class="term-panel bracket-box">
+            <div class="term-panel-header">
+              <div class="term-panel-title">
+                <span class="prefix">03.3 //</span> EQUIPAMENTOS & ITENS
+              </div>
+              <button id="btn-add-gear" class="btn-term btn-term-sm">+ ITEM</button>
+            </div>
+            <div class="term-panel-body">
+              <div id="gear-list-container"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Aba 4: Contatos e Dossiê -->
+        <section id="tab-notes" class="tab-pane">
+          <!-- Contatos -->
+          <div class="term-panel bracket-box" style="margin-bottom: 1.25rem;">
+            <div class="term-panel-header">
+              <div class="term-panel-title">
+                <span class="prefix">04.1 //</span> REDE DE CONTATOS
+              </div>
+              <button id="btn-add-contact" class="btn-term btn-term-sm">+ CONTATO</button>
+            </div>
+            <div class="term-panel-body">
+              <div id="contacts-list-container"></div>
+            </div>
+          </div>
+
+          <!-- Anotações e dossiê de missão -->
+          <div class="term-panel bracket-box">
+            <div class="term-panel-header">
+              <div class="term-panel-title">
+                <span class="prefix">04.2 //</span> DIÁRIO DE OPERAÇÕES & NOTAS CLANDESTINAS
+              </div>
+              <span class="sys-tag" style="color: var(--term-green);">ENCRYPTED_LOG</span>
+            </div>
+            <div class="term-panel-body">
+              <textarea id="char-notes" class="field-input field-input-mono"
+                style="min-height: 420px; font-size: 0.95rem; line-height: 1.6;"
+                placeholder="// Insira anotações de corridas, débitos, senhas de Matrix, coordenadas seguras e termos contratuais com megacorporações..."></textarea>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="terminal-footbar">
+      <div class="foot-group">
+        <div class="foot-item">
+          <span>LOCAL STORAGE:</span>
+          <span class="led-indicator led-green"></span>
+          <span style="color: var(--term-green);">OK</span>
+        </div>
+        <div class="foot-item optional">
+          <span>NODE:</span>
+          <span style="color: var(--text-bright);">SECURE_CLIENT</span>
+        </div>
+      </div>
+
+      <div class="foot-group">
+        <div id="footer-save-status" class="foot-item">
+          <span>STATUS:</span>
+          <span class="led-indicator led-green"></span>
+          <span style="color: var(--text-bright);">SALVO LOCALMENTE</span>
+        </div>
+      </div>
+
+      <div class="foot-group">
+        <div class="foot-item optional">
+          <span>SCHEMA //</span>
+          <span style="color: var(--text-bright);">v1.0-SRA</span>
+        </div>
+        <div class="foot-item author-foot-item">
+          <span class="author-label">© 2026 Pedro Moreira de Souza</span>
+          <button type="button" id="btn-open-about-modal" class="btn-foot-link" title="Sobre o Projeto, Autoria e Termos de Licença">
+            SOBRE &amp; LICENÇA
+          </button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Modal: Gerenciador de fichas -->
+  <div id="modal-sheets-manager" class="modal-backdrop">
+    <div class="modal-window bracket-box modal-window-sheets">
+      <div class="modal-header">
+        <div>
+          <h3 style="margin: 0; color: var(--term-green); font-size: 1.05rem;">DOSSIÊ // GERENCIADOR DE FICHAS</h3>
+          <div style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-muted);">
+            // GERENCIAMENTO MULTI-RUNNER (SHADOWRUN: ANARCHY)
+          </div>
+        </div>
+        <button id="btn-close-sheets-modal" class="btn-term btn-term-sm" style="border: none;" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem;">
+        <!-- Ficha ativa -->
+        <div id="modal-active-sheet-summary"></div>
+
+        <!-- Criar nova ficha -->
+        <div class="new-sheet-bar bracket-box">
+          <div class="field-block" style="flex: 1; margin: 0;">
+            <div class="field-label" style="font-size: 0.65rem;">NOVA FICHA // NOM DE GUERRE OU IDENTIFICADOR</div>
+            <input type="text" id="input-new-sheet-name" class="field-input" placeholder="Ex: Kage, Chrome, Street Samurai..." autocomplete="off" />
+          </div>
+          <button type="button" id="btn-modal-create-sheet" class="btn-term btn-term-primary" style="white-space: nowrap; height: 36px; padding: 0 1rem;">
+            + CRIAR FICHA
+          </button>
+        </div>
+
+        <!-- Lista de personagens -->
+        <div class="sheets-section-title">
+          <span>COLEÇÃO DE RUNNERS NO TERMINAL</span>
+          <span class="sys-tag" style="color: var(--term-cyan);">TOTAL INDEPENDENTE</span>
+        </div>
+
+        <!-- Lista de fichas salvas -->
+        <div id="modal-roster-list" class="sheets-roster-grid"></div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button type="button" id="btn-modal-import" class="btn-term btn-term-sm">IMPORTAR JSON</button>
+          <button type="button" id="btn-modal-export" class="btn-term btn-term-sm">EXPORTAR ATIVA</button>
+        </div>
+        <button type="button" onclick="document.getElementById('modal-sheets-manager').classList.remove('active')" class="btn-term btn-term-sm">FECHAR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Rolagem de dados -->
+  <div id="modal-dice-roller" class="modal-backdrop">
+    <div class="modal-window bracket-box modal-window-dice">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="d6-header-icon" aria-hidden="true" style="display: flex; align-items: center; color: var(--term-green);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8" cy="8" r="1.3" fill="currentColor"/>
+              <circle cx="16" cy="8" r="1.3" fill="currentColor"/>
+              <circle cx="12" cy="12" r="1.3" fill="currentColor"/>
+              <circle cx="8" cy="16" r="1.3" fill="currentColor"/>
+              <circle cx="16" cy="16" r="1.3" fill="currentColor"/>
+            </svg>
+          </div>
+          <div>
+            <h3 id="dice-modal-title" style="margin: 0; color: var(--term-green); font-size: 1.05rem; letter-spacing: 0.5px;">MATRIX D6 ROLLER</h3>
+            <div id="dice-modal-subtext" style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-muted);"></div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <button type="button" id="btn-close-dice-modal" class="btn-term btn-term-sm" style="border: none;" aria-label="Fechar">✕</button>
+        </div>
+      </div>
+
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem;">
+        <!-- Configuração da rolagem -->
+        <div class="dice-pool-control-box bracket-box">
+          <div class="dice-pool-header-row">
+            <span class="field-label" style="margin: 0;">RESERVA DE DADOS (D6)</span>
+            <div class="dice-presets-chips">
+              <span class="dice-presets-label">PRESETS:</span>
+              <button type="button" class="btn-dice-preset" data-pool="4">4</button>
+              <button type="button" class="btn-dice-preset" data-pool="6">6</button>
+              <button type="button" class="btn-dice-preset" data-pool="8">8</button>
+              <button type="button" class="btn-dice-preset" data-pool="10">10</button>
+              <button type="button" class="btn-dice-preset" data-pool="12">12</button>
+              <button type="button" class="btn-dice-preset" data-pool="16">16</button>
+            </div>
+          </div>
+
+          <div class="dice-stepper-row">
+            <div class="dice-stepper-group">
+              <button type="button" id="btn-pool-dec-5" class="btn-term btn-term-sm btn-stepper-quick" title="Diminuir 5 dados">-5</button>
+              <button type="button" id="btn-pool-dec-1" class="btn-term btn-term-sm btn-stepper-quick" title="Diminuir 1 dado">-1</button>
+              <div class="dice-pool-input-wrapper">
+                <input type="number" id="dice-pool-input" class="field-input field-input-mono dice-pool-numeric" min="1" max="50" value="6" />
+                <span class="dice-pool-suffix">D6</span>
+              </div>
+              <button type="button" id="btn-pool-inc-1" class="btn-term btn-term-sm btn-stepper-quick" title="Aumentar 1 dado">+1</button>
+              <button type="button" id="btn-pool-inc-5" class="btn-term btn-term-sm btn-stepper-quick" title="Aumentar 5 dados">+5</button>
+            </div>
+
+            <!-- Dado de Anarquia e Trunfo -->
+            <div class="dice-toggles-cluster">
+              <label class="dice-toggle-label" title="O primeiro dado é o Dado de Falha">
+                <input type="checkbox" id="cb-anarchy-die" checked />
+                <span class="dice-toggle-pill dice-toggle-anarchy">
+                  <span class="toggle-dot"></span>
+                  <span class="toggle-text">DADO DE FALHA</span>
+                </span>
+              </label>
+              <label class="dice-toggle-label" title="Gasta 1 Trunfo para acertos em 4, 5 e 6">
+                <input type="checkbox" id="cb-edge-preroll" />
+                <span class="dice-toggle-pill dice-toggle-edge">
+                  <span class="toggle-dot"></span>
+                  <span class="toggle-text">ROLAR COM TRUNFO</span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resultados da rolagem -->
+        <div id="dice-modal-results" class="dice-arena-container">
+          <!-- Mensagem de espera -->
+          <div class="dice-standby-placeholder">
+            <div class="standby-radar-ring" aria-hidden="true"></div>
+            <div class="standby-mono-text">// SISTEMA DE ROLAGEM MATRICIAL PRONTO //</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: space-between; align-items: center;">
+        <div class="dice-footer-hint" style="font-size: 0.68rem; font-family: var(--font-mono); color: var(--text-muted);">
+          ATALHO: <kbd style="background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 2px; color: var(--text-bright);">ESPAÇO</kbd> OU <kbd style="background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 2px; color: var(--text-bright);">ENTER</kbd>
+        </div>
+        <button type="button" id="btn-modal-roll-action" class="btn-term btn-term-primary btn-roll-trigger" style="flex: 1; min-width: 220px; font-size: 0.95rem; padding: 0.7rem 1.25rem; font-weight: 700; letter-spacing: 0.8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8" cy="8" r="1.3" fill="currentColor"/>
+            <circle cx="16" cy="8" r="1.3" fill="currentColor"/>
+            <circle cx="12" cy="12" r="1.3" fill="currentColor"/>
+          </svg>
+          <span>EXECUTAR ROLAGEM NA MATRIZ</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Seletor de temas -->
+  <div id="modal-theme-selector" class="modal-backdrop">
+    <div class="modal-window bracket-box modal-window-theme">
+      <div class="modal-header">
+        <div>
+          <h3 style="margin: 0; color: var(--term-green); font-size: 1.05rem;">
+            // CALIBRAGEM CROMÁTICA DO TERMINAL
+          </h3>
+          <div style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-muted);">
+            // SELEÇÃO DE ESQUEMA DE CORES CYBERDECK (PADRÃO: MATRIX GREEN)
+          </div>
+        </div>
+        <button id="btn-close-theme-modal" class="btn-term btn-term-sm" style="border: none;" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 1.15rem;">
+        <!-- Pré-visualização do tema -->
+        <div class="theme-preview-hud bracket-box">
+          <div class="theme-preview-label">// TELEMETRIA EM TEMPO REAL // PRÉVIA DOS ELEMENTOS</div>
+          <div class="theme-preview-elements">
+            <span class="sys-tag" style="color: var(--term-green); border-color: var(--term-green-border); background: var(--term-green-dim);">
+              ● SRA-2080 ONLINE
+            </span>
+            <span class="led-indicator led-green"></span>
+            <button type="button" class="btn-term btn-term-sm btn-term-primary" style="pointer-events: none;">
+              BOTÃO TÁTICO
+            </button>
+            <span style="font-family: var(--font-mono); color: var(--term-green); font-weight: 700;">
+              D6 [HITS: 4]
+            </span>
+          </div>
+        </div>
+
+        <!-- Temas predefinidos -->
+        <div class="sheets-section-title">
+          <span>ESQUEMAS TÁTICOS PREDEFINIDOS</span>
+          <span class="sys-tag" style="color: var(--term-cyan);">7 PERFIS</span>
+        </div>
+
+        <!-- Grade de temas -->
+        <div id="theme-presets-grid" class="theme-presets-grid"></div>
+
+        <!-- Cores personalizadas -->
+        <div class="sheets-section-title">
+          <span>ESPECTRO LIVRE // COR PERSONALIZADA</span>
+          <span class="sys-tag" style="color: var(--term-purple);">HEX / RGB</span>
+        </div>
+
+        <div class="custom-color-box bracket-box">
+          <div class="custom-color-inputs">
+            <div class="color-picker-wrapper">
+              <label for="input-theme-custom-picker" class="field-label" style="font-size: 0.65rem;">PALETA</label>
+              <input type="color" id="input-theme-custom-picker" value="#00ff66" title="Escolha qualquer cor personalizada" />
+            </div>
+            <div class="field-block" style="flex: 1; margin: 0;">
+              <div class="field-label" style="font-size: 0.65rem;">HEXADECIMAL</div>
+              <input type="text" id="input-theme-custom-hex" class="field-input field-input-mono" placeholder="#00ff66" maxlength="7" spellcheck="false" autocomplete="off" />
+            </div>
+            <button type="button" id="btn-apply-custom-theme" class="btn-term btn-term-primary" style="white-space: nowrap; height: 38px;">
+              APLICAR COR
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+        <button type="button" id="btn-reset-default-theme" class="btn-term btn-term-sm" title="Restaurar para Verde Matrix Original">
+          ↺ RESTAURAR PADRÃO (MATRIX)
+        </button>
+        <button type="button" id="btn-confirm-theme-modal" class="btn-term btn-term-sm btn-term-primary">
+          CONCLUÍDO
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Sobre e Licença -->
+  <div id="modal-about-license" class="modal-backdrop">
+    <div class="modal-window bracket-box modal-window-about">
+      <div class="modal-header">
+        <div>
+          <h3 style="margin: 0; color: var(--term-green); font-size: 1.05rem; letter-spacing: 0.5px;">
+            // SOBRE // AUTORIA &amp; TERMOS DE USO
+          </h3>
+          <div style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-muted);">
+            // TERMINAL CLANDESTINO DE GERENCIAMENTO DE RUNNER (SHADOWRUN: ANARCHY)
+          </div>
+        </div>
+        <button type="button" id="btn-close-about-modal" class="btn-term btn-term-sm" style="border: none;" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 1.15rem; max-height: 65vh; overflow-y: auto; padding-right: 0.35rem;">
+        
+        <!-- Cartão de Identificação do Desenvolvedor -->
+        <div class="about-hero-card bracket-box" style="padding: 1rem; background: rgba(0, 255, 102, 0.03); border: 1px solid var(--border-panel);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <div style="font-family: var(--font-header); font-size: 1.15rem; color: var(--text-bright); font-weight: 700;">
+                Desenvolvido por Pedro Moreira de Souza
+              </div>
+              <div style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--term-green); margin-top: 2px;">
+                © 2026 Pedro Moreira de Souza. Direitos reservados aos respectivos titulares.
+              </div>
+            </div>
+            <span class="sys-tag" style="color: var(--term-green); border-color: var(--term-green-border);">v1.0.0 // SRA-2080</span>
+          </div>
+          <div style="font-family: var(--font-body); font-size: 0.82rem; color: var(--text-muted); margin-top: 0.75rem; line-height: 1.5;">
+            Aplicação independente desenvolvida para criação, preenchimento, gerenciamento e apoio a sessões de RPG no sistema Shadowrun: Anarchy. Disponível nas versões web e desktop para Windows.
+          </div>
+        </div>
+
+        <!-- Seletor de visualização (Resumo / Licença / Avisos de Terceiros) -->
+        <div class="about-tabs-nav" style="display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border-panel); padding-bottom: 0.5rem;">
+          <button type="button" id="tab-btn-about-summary" class="btn-term btn-term-sm active" style="flex: 1;">RESUMO DOS TERMOS</button>
+          <button type="button" id="tab-btn-about-license" class="btn-term btn-term-sm" style="flex: 1;">TERMOS COMPLETOS (LICENSE.MD)</button>
+          <button type="button" id="tab-btn-about-thirdparty" class="btn-term btn-term-sm" style="flex: 1;">AVISOS DE TERCEIROS</button>
+        </div>
+
+        <!-- Painel 1: Resumo dos Termos -->
+        <div id="about-pane-summary" class="about-pane active" style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.82rem; line-height: 1.55;">
+          
+          <div class="about-section-block">
+            <h4 style="color: var(--term-green); margin: 0 0 0.35rem 0; font-family: var(--font-mono); font-size: 0.88rem;">
+              [✓] PERMISSÕES DE USO PESSOAL
+            </h4>
+            <p style="margin: 0; color: var(--text-base);">
+              É permitido utilizar livremente o aplicativo para fins pessoais, recreativos e não comerciais, incluindo o preenchimento de fichas, gerenciamento de múltiplos runners e sessões de RPG com seus amigos. Os dados gerados (fichas em JSON e exportações em PDF) pertencem ao usuário.
+            </p>
+          </div>
+
+          <div class="about-section-block">
+            <h4 style="color: #ffaa00; margin: 0 0 0.35rem 0; font-family: var(--font-mono); font-size: 0.88rem;">
+              [!] MATERIAIS AUTORAIS ORIGINAIS E RESTRIÇÕES
+            </h4>
+            <p style="margin: 0; color: var(--text-base);">
+              O código-fonte original, o design de interface, a arquitetura e os scripts desenvolvidos por Pedro Moreira de Souza são protegidos pela legislação brasileira (Lei nº 9.609/1998 e Lei nº 9.610/1998). É vedada a venda, comercialização, sublicenciamento ou redistribuição pública não autorizada de cópias do projeto, bem como a remoção ou falsificação dos avisos de autoria e direitos autorais.
+            </p>
+          </div>
+
+          <div class="about-section-block">
+            <h4 style="color: var(--term-cyan); margin: 0 0 0.35rem 0; font-family: var(--font-mono); font-size: 0.88rem;">
+              [i] PROPRIEDADE INTELECTUAL DE TERCEIROS E MARCA SHADOWRUN
+            </h4>
+            <p style="margin: 0; color: var(--text-base);">
+              <em>Shadowrun</em> e <em>Shadowrun: Anarchy</em> são marcas registradas e de propriedade de <strong>The Topps Company, Inc.</strong> e <strong>Catalyst Game Labs</strong>. Este software é uma ferramenta independente feita por fãs, sem vínculo oficial, patrocínio ou endosso por parte das referidas detentoras. As fontes tipográficas incorporadas são regidas pela SIL Open Font License 1.1 e os componentes de desenvolvimento do Electron pela Licença MIT.
+            </p>
+          </div>
+
+          <div class="about-section-block">
+            <h4 style="color: var(--text-muted); margin: 0 0 0.35rem 0; font-family: var(--font-mono); font-size: 0.88rem;">
+              [-] ISENÇÃO DE GARANTIAS
+            </h4>
+            <p style="margin: 0; color: var(--text-muted); font-size: 0.78rem;">
+              O software é fornecido no estado em que se encontra ("as is"). Na extensão máxima permitida pela legislação brasileira, o autor não responde por eventuais perdas de dados ou danos decorrentes do uso. Utilize os recursos de exportação e backup periódico recomendados.
+            </p>
+          </div>
+        </div>
+
+        <!-- Painel 2: Texto Completo da Licença (LICENSE.md) -->
+        <div id="about-pane-license" class="about-pane" style="display: none;">
+          <div class="about-raw-text bracket-box" style="padding: 0.85rem; background: rgba(0,0,0,0.6); border: 1px solid var(--border-panel); font-family: var(--font-mono); font-size: 0.72rem; line-height: 1.6; color: var(--text-base); max-height: 380px; overflow-y: auto; white-space: pre-wrap;" id="about-license-content">Carregando termos da licença...</div>
+        </div>
+
+        <!-- Painel 3: Avisos de Terceiros (THIRD-PARTY-NOTICES.md) -->
+        <div id="about-pane-thirdparty" class="about-pane" style="display: none;">
+          <div class="about-raw-text bracket-box" style="padding: 0.85rem; background: rgba(0,0,0,0.6); border: 1px solid var(--border-panel); font-family: var(--font-mono); font-size: 0.72rem; line-height: 1.6; color: var(--text-base); max-height: 380px; overflow-y: auto; white-space: pre-wrap;" id="about-thirdparty-content">Carregando avisos de terceiros...</div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+        <div id="about-desktop-actions" style="display: none; gap: 0.5rem;">
+          <button type="button" id="btn-open-license-file" class="btn-term btn-term-sm" title="Abrir arquivo LICENSE.md no editor padrão do Windows">
+            ABRIR LICENSE.MD
+          </button>
+          <button type="button" id="btn-open-thirdparty-file" class="btn-term btn-term-sm" title="Abrir arquivo THIRD-PARTY-NOTICES.md no editor padrão do Windows">
+            ABRIR AVISOS DE TERCEIROS
+          </button>
+        </div>
+        <button type="button" id="btn-confirm-about-modal" class="btn-term btn-term-sm btn-term-primary" style="margin-left: auto;">
+          FECHAR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Container de notificações toast -->
+  <div id="toast-container"></div>
+
+  <!-- Script principal -->
+  <script src="./js/bundle.js"></script>
+</body>
+
+</html>

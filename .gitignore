@@ -1,0 +1,81 @@
+# Build e executáveis
+dist/
+build/
+out/
+bin/
+*.exe
+*.msi
+*.zip
+*.tar.gz
+*.blockmap
+builder-debug.yml
+latest.yml
+
+# Dependências
+node_modules/
+jspm_packages/
+.pnpm-store/
+
+# Dados locais e testes
+userData/
+data/characters/
+data/backups/
+data/roster.json
+data/settings.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Logs e arquivos temporários
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+scratch/
+
+# Variáveis de ambiente
+.env
+.env.*
+*.local
+
+# Sistema operacional
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editores / IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Arquivos essenciais que devem permanecer versionados
+!.nojekyll
+!LICENSE.md
+!THIRD-PARTY-NOTICES.md
+!DOCUMENTACAO_DESKTOP.md
+!package.json
+!package-lock.json
+!build_bundle.py
+!index.html
+!manifest.json
+!sw.js
+!css/
+!js/
+!electron/
+!fonts/
+!icons/
+!tools/
